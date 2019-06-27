@@ -11,7 +11,7 @@ def main():
     ignoreerrors = False  # Does the program continue running after a duplicate file error
 
     continueoperation = False
-    for startname in os.listdir(dirname):
+    for startname in os.listdir("MassRename\\" + dirname):
         filesfound = True
         namelist = re.split('[_.]', startname)  # Split file name by the delimiters within the brackets
         for x in indexlist:  # Moves through index, adding each section to the file name
