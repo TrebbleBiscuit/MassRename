@@ -23,12 +23,15 @@ def main():
     except Exception as err:
         input("Configuration file error. Make sure config.ini is formatted correctly.")
         raise(err)
+    rename(renamefolder, genfilename(indexlist, newdelimiter, delimiters, renamefolder))
 
-    ### Generate list of file names ###
+def genfilename(indexlist, newdelimiter, delimiters, renamefolder):    ### Generate list of file names ###  
     continueoperation = False
+    filesfound = False
     finalnames = []
     for startname in os.listdir(renamefolder):  # Iterates through files within the renamefolder directory
-        if os.path.isdir(renamefolder + "\\" + startname): continue  # If it finds a directory instead of a file, skip it
+        if os.path.isdir(renamefolder + "\\" + startname):
+            continue  # If it finds a directory instead of a file, skip it
         filesfound = True
         namelist = split(delimiters, startname)  # Splits filename by delimiters
         namelist += split("[.]", namelist.pop(-1))  # Splits file extension
@@ -40,21 +43,27 @@ def main():
                 print("\nError: " + str(err))
                 print("You probably put number in indexlist that is higher than the number of sections in the file name.")
                 input("\nOperation Cancelled")
-                return
+                return []
         finalname = finalname + "." + fileext  # Replace file extension at end 
         if not continueoperation:
-            print("\nThe first file will be renamed from:\n" + startname + " to " + finalname)  # Make sure that the filename looks correct before continuing
-            print("Are you sure you want to rename all files according to this format? ('y' to continue, anything else to not)")
+            print("The first file will be renamed from:\n" + startname + " to " + finalname)  # Make sure that the filename looks correct before continuing
+            print("Are you sure you want to rename all files according to this format?")
+            print("('y' to continue, anything else to not)")
             if input("> ").lower() == "y":
                 print("")
                 continueoperation = True
             else:
                 input("\nOperation Cancelled")
-                return
+                return []
         finalnames.append(finalname)  # Add the generated final name to a list of final names (renaming will be done later)
         del finalname  # delete finalname variable before moving to new file so that the earlier NameError will trigger
+    if not filesfound:
+        input("No files found in 'ToRename' directory.")
+    return finalnames
 
-    ### Execute rename operation ###
+def rename(renamefolder, finalnames):    ### Execute rename operation ### 
+    if finalnames is None: return
+    elif finalnames == []: return
     ignoreerrors = False
     countindex = 0
     for startname in os.listdir(renamefolder):
@@ -75,9 +84,6 @@ def main():
                         return
                 except IndexError: pass
         countindex += 1
-    try:  # Check if there were any files in renamefolder
-        filesfound
-        input("\nOperation Complete")
-    except UnboundLocalError: input("No files found in '" + renamefolder + "' directory.")
+    input("\nOperation Complete")
 
 main()
