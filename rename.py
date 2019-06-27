@@ -21,9 +21,8 @@ def main():
         delimiters = config["Basic"]["FilenameDelimiters"]
         renamefolder = config["Advanced"]["RenameFolder"]
     except Exception as err:
-        print("Configuration file error. Make sure config.ini is formatted correctly.")
+        input("Configuration file error. Make sure config.ini is formatted correctly.")
         raise(err)
-        return
 
     ### Generate list of file names ###
     continueoperation = False
@@ -33,6 +32,7 @@ def main():
         filesfound = True
         namelist = split(delimiters, startname)  # Splits filename by delimiters
         namelist += split("[.]", namelist.pop(-1))  # Splits file extension
+        fileext = namelist.pop(-1)  # Removes file extension from list
         for x in indexlist:  # Moves through index, adding each section to the file name
             try: finalname = finalname + newdelimiter + (namelist[x])  # Sections are separated by the new delimiter
             except NameError: finalname = namelist[x]  # When it's the first part of the filename, don't precede it with a delimiter
@@ -41,7 +41,7 @@ def main():
                 print("You probably put number in indexlist that is higher than the number of sections in the file name.")
                 input("\nOperation Cancelled")
                 return
-        finalname = finalname + "." + namelist[-1]  # Replace file extension at end 
+        finalname = finalname + "." + fileext  # Replace file extension at end 
         if not continueoperation:
             print("\nThe first file will be renamed from:\n" + startname + " to " + finalname)  # Make sure that the filename looks correct before continuing
             print("Are you sure you want to rename all files according to this format? ('y' to continue, anything else to not)")
