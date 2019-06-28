@@ -18,11 +18,17 @@ def main():
         delimiters = config["Basic"]["FilenameDelimiters"]
         renamefolder = config["Advanced"]["RenameFolder"]
     except Exception as err:
-        print("Configuration file error. Make sure config.ini is formatted correctly before running this helper.")
+        print("Configuration file error: " + err)
+        print("Make sure config.ini is formatted correctly before running this helper.")
         input("If you're not sure how, use the default values.")
         raise(err)
-    print("This file is intended to help you create an appropriate IndexList in config.ini\n")
-    print("Place an example file you would like to rename in the " + renamefolder + " folder, ")
+    if not os.path.isdir(renamefolder):
+        print('"' + renamefolder + '" folder not found.')
+        print('Create a folder called "' + renamefolder + '" in the same directory as this file, then run ')
+        input('this helper again.\n')
+        return
+    print("This file is intended to help you create an appropriate IndexList in config.ini")
+    print('Place an example file you would like to rename in the "' + renamefolder + '" folder, ')
     input("then press enter.\n")
     for startname in os.listdir(renamefolder):  # Iterates through files within the renamefolder directory
         if os.path.isdir(renamefolder + "\\" + startname): continue  # If it finds a directory instead of a file, skip it
@@ -75,7 +81,7 @@ def main():
         print("Negative values work backwords, so -1 for example would give you the section nearest the end of the filename.")
         input("There's no problem with that, just make sure that you know what you're doing. \n")
     finalname = finalname + "." + fileext  # Replace file extension at end
-    print("\nGreat! You entered a valid index list.\n")
+    print("\n\nGreat! You entered a valid index list.\n")
     print("If you ran your test file \"" + startname + '" through the renamer with ')
     print("that index list, it would be renamed:")
     print("\n" + finalname + "\n")

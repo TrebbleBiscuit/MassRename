@@ -1,6 +1,6 @@
 # Author - Erik Nielsen
 # 
-# This program is used to rename files that have sections in their file names separated by delimiters that need to be rearranged.
+# This program is used to rename files that have sections in their file names (separated by delimiters) that need to be rearranged.
 # It works by separating the existing file name (by delimiters) into several sections, then
 # puts the sections back in a user defined order, separating them by a user defined delimiter.
 
@@ -23,6 +23,11 @@ def main():
     except Exception as err:
         input("Configuration file error. Make sure config.ini is formatted correctly.")
         raise(err)
+    if not os.path.isdir(renamefolder):
+        print('"' + renamefolder + '" folder not found.')
+        print('Create a folder called "' + renamefolder + '" in the same directory as this file, then run ')
+        input('this program again.\n')
+        return
     rename(renamefolder, genfilename(indexlist, newdelimiter, delimiters, renamefolder))
 
 def genfilename(indexlist, newdelimiter, delimiters, renamefolder):    ### Generate list of file names ###  
@@ -43,7 +48,7 @@ def genfilename(indexlist, newdelimiter, delimiters, renamefolder):    ### Gener
                 print("\nError: " + str(err))
                 print("You probably put number in indexlist that is higher than the number of sections in the file name.")
                 input("\nOperation Cancelled")
-                return []
+                return
         finalname = finalname + "." + fileext  # Replace file extension at end 
         if not continueoperation:
             print("The first file will be renamed from:\n" + startname + " to " + finalname)  # Make sure that the filename looks correct before continuing
@@ -54,7 +59,7 @@ def genfilename(indexlist, newdelimiter, delimiters, renamefolder):    ### Gener
                 continueoperation = True
             else:
                 input("\nOperation Cancelled")
-                return []
+                return
         finalnames.append(finalname)  # Add the generated final name to a list of final names (renaming will be done later)
         del finalname  # delete finalname variable before moving to new file so that the earlier NameError will trigger
     if not filesfound:
