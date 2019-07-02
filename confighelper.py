@@ -6,9 +6,10 @@ import os               # Used to get the file names and rename them
 from re import split    # Used for spliting a string by multiple delimiters
 import configparser     # Used for parsing config.ini
 
-def main():
+def readconfig():
     config = configparser.ConfigParser()
     config.read("config.ini")
+    print("Importing configuration file...")
     if not os.path.isfile("config.ini"):
         input("Configuration file not found. Make sure config.ini is present in the same directory as this file.")
         return
@@ -25,8 +26,14 @@ def main():
     if not os.path.isdir(renamefolder):
         print('"' + renamefolder + '" folder not found.')
         print('Create a folder called "' + renamefolder + '" in the same directory as this file, then run ')
-        input('this helper again.\n')
+        input('this helper again. You may choose a different folder name in config.ini\n')
         return
+    os.system('cls' if os.name == 'nt' else 'clear')
+    return indexlist, newdelimiter, delimiters, renamefolder
+
+def helper():
+    try: indexlist, newdelimiter, delimiters, renamefolder = readconfig()
+    except TypeError: return
     print("This file is intended to help you create an appropriate IndexList in config.ini")
     print('Place an example file you would like to rename in the "' + renamefolder + '" folder, ')
     input("then press enter.\n")
@@ -37,10 +44,12 @@ def main():
         print("No files found in the " + renamefolder + " folder.")
         print("Place a file there and run this program again.")
         return
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("The example file we will look at is \"" + startname + '"\n')
     print("This file will be separated into sections by the delimiters defined in the ")
     print("configuration file.")
     input("Press enter to see how the file is separated.\n")
+    os.system('cls' if os.name == 'nt' else 'clear')
     namelist = split(delimiters, startname)  # Splits filename by delimiters
     namelist += split("[.]", namelist.pop(-1))  # Splits file extension
     fileext = namelist.pop(-1)  # Removes file extension from list
@@ -58,29 +67,38 @@ def main():
         if userinput == "": continue
         try:indexlist = [int(x) for x in userinput.split(",")]
         except ValueError:
-            print("Remember to only use integers.")
+            print("Remember to only use integers separated by commas.")
             continue
-        for x in indexlist:
-            try: finalname = finalname + newdelimiter + (namelist[x])  # Sections are separated by the new delimiter
+        for x in range(len(indexlist)):
+            try: finalname = finalname + newdelimiter + (namelist[indexlist[x]])  # Sections are separated by the new delimiter
             except NameError:
-                try: finalname = namelist[x]  # When it's the first part of the filename, don't precede it with a delimiter
+                try: finalname = namelist[indexlist[x]]  # When it's the first part of the filename, don't precede it with a delimiter
                 except IndexError:
                     print("You put a number in your list that is higher than the number of sections in the file name. Try again.")
-                    letscontinue = False
                     break
             except IndexError:
                 print("You put a number in your list that is higher than the number of sections in the file name. Try again.")
-                letscontinue = False
                 break
-            if x<0: 
+            if indexlist[x]<0: 
                 includednegative = True
-            if x == indexlist[-1]:
+            if x == len(indexlist)-1:  # If you made it to the last entry in the list without any errors
                 letscontinue = True
     if includednegative:
-        print("\nYou included a negative value in your index.")
+        print("\nYou included a negative value in your index list.")
         print("Negative values work backwords, so -1 for example would give you the section nearest the end of the filename.")
         input("There's no problem with that, just make sure that you know what you're doing. \n")
+    if len(indexlist) != len(set(indexlist)):
+        print("\nYou have a duplicate value in your index list.")
+        print("This means that the same information will show up twice in the filename.")
+        input("There's no problem with that, just make sure that you know what you're doing. \n")
+    for x in range(len(namelist)):
+        if x not in indexlist:
+            print("\nYou didn't include every index in your index list.")
+            print("This means that there will be some information removed from the file name.")
+            input("There's no problem with that, just make sure that you know what you're doing. \n")
+            break
     finalname = finalname + "." + fileext  # Replace file extension at end
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("\n\nGreat! You entered a valid index list.\n")
     print("If you ran your test file \"" + startname + '" through the renamer with ')
     print("that index list, it would be renamed:")
@@ -92,4 +110,4 @@ def main():
     print("IndexList: " + ', '.join(map(str, indexlist)))
     input("\nIf that's not what you want, then run this helper again.")
 
-main()
+helper()

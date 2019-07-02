@@ -4,14 +4,14 @@
 # It works by separating the existing file name (by delimiters) into several sections, then
 # puts the sections back in a user defined order, separating them by a user defined delimiter.
 
-import os               # Used to get the file names and rename them
+import os               # Used to get and rename file names, and to clear the screen
 from re import split    # Used for spliting a string by multiple delimiters
 import configparser     # Used for parsing config.ini
 
-def main(): 
-    ### Import configuration ###
+def readconfig():
     config = configparser.ConfigParser()
     config.read("config.ini")
+    print("Importing configuration file...")
     if not os.path.isfile("config.ini"):
         input("Configuration file not found. Make sure config.ini is present in the same directory as this file.")
         return
@@ -21,14 +21,17 @@ def main():
         delimiters = config["Basic"]["FilenameDelimiters"]
         renamefolder = config["Advanced"]["RenameFolder"]
     except Exception as err:
-        input("Configuration file error. Make sure config.ini is formatted correctly.")
+        print("Configuration file error: " + err)
+        print("Make sure config.ini is formatted correctly before running this helper.")
+        input("If you're not sure how, use the default values.")
         raise(err)
     if not os.path.isdir(renamefolder):
         print('"' + renamefolder + '" folder not found.')
         print('Create a folder called "' + renamefolder + '" in the same directory as this file, then run ')
-        input('this program again.\n')
+        input('this helper again. You may choose a different folder name in config.ini\n')
         return
-    rename(renamefolder, genfilename(indexlist, newdelimiter, delimiters, renamefolder))
+    os.system('cls' if os.name == 'nt' else 'clear')
+    return indexlist, newdelimiter, delimiters, renamefolder
 
 def genfilename(indexlist, newdelimiter, delimiters, renamefolder):    ### Generate list of file names ###  
     continueoperation = False
@@ -90,5 +93,11 @@ def rename(renamefolder, finalnames):    ### Execute rename operation ###
                 except IndexError: pass
         countindex += 1
     input("\nOperation Complete")
+
+def main(): 
+    ### Import configuration ###
+    try: indexlist, newdelimiter, delimiters, renamefolder = readconfig()
+    except TypeError: return
+    rename(renamefolder, genfilename(indexlist, newdelimiter, delimiters, renamefolder))
 
 main()
