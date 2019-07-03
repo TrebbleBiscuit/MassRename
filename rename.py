@@ -32,16 +32,16 @@ class Renamer():
             print('Create a folder called "' + self.renamefolder + '" in the same directory as this file, then run ')
             input('this helper again. You may choose a different folder name in config.ini\n')
             raise Exception
+        self.ignoreerrors = False
+        self.continueoperation = False
+        self.startnames = []
+        self.finalnames = []
         os.system('cls' if os.name == 'nt' else 'clear')
 
     def genfilename(self):    ### Generate list of file names ###  
-        continueoperation = False
-        filesfound = False
-        finalnames = []
         for startname in os.listdir(self.renamefolder):  # Iterates through files within the renamefolder directory
             if os.path.isdir(self.renamefolder + "\\" + startname):
                 continue  # If it finds a directory instead of a file, skip it
-            filesfound = True
             namelist = split(self.delimiters, startname)  # Splits filename by delimiters
             namelist += split("[.]", namelist.pop(-1))  # Splits file extension
             fileext = namelist.pop(-1)  # Removes file extension from list
@@ -52,42 +52,40 @@ class Renamer():
                     print("\nError: " + str(err))
                     print("You probably put number in indexlist that is higher than the number of sections in the file name.")
                     input("\nOperation Cancelled")
-                    return
+                    return False
             finalname = finalname + "." + fileext  # Replace file extension at end 
-            if not continueoperation:
+            if not self.continueoperation:
                 print("The first file will be renamed from:\n" + startname + " to " + finalname)  # Make sure that the filename looks correct before continuing
                 print("Are you sure you want to rename all files according to this format?")
                 print("('y' to continue, anything else to not)")
                 if input("> ").lower() == "y":
                     print("")
-                    continueoperation = True
+                    self.continueoperation = True
                 else:
                     input("\nOperation Cancelled")
-                    return
-            finalnames.append(finalname)  # Add the generated final name to a list of final names (renaming will be done later)
+                    return False
+            self.startnames.append(startname)  # Add the original name to a list of original names
+            self.finalnames.append(finalname)  # Add the generated final name to a list of final names
             del finalname  # delete finalname variable before moving to new file so that the earlier NameError will trigger
-        if not filesfound:
-            input("No files found in 'ToRename' directory.")
-        return finalnames
+        return True
 
-    def rename(self, finalnames):    ### Execute rename operation ### 
-        if finalnames is None: return
-        elif finalnames == []: return
-        ignoreerrors = False
+    def rename(self):    ### Execute rename operation ### 
+        if self.finalnames == []: input("No files found in 'ToRename' directory.")
+        assert self.finalnames  # DEBUG: Asserts that self.finalnames evaluates as True, which it always should.
         countindex = 0
         for startname in os.listdir(self.renamefolder):
             if os.path.isdir(self.renamefolder + "\\" + startname): continue  # If it finds a directory, skip it
-            print("Renaming " + startname + " to " + finalnames[countindex] + " - ", end='')
+            print("Renaming " + startname + " to " + self.finalnames[countindex] + " - ", end='')
             try:
-                os.rename(self.renamefolder + "\\" + startname, self.renamefolder + "\\" + finalnames[countindex])  # Rename operation
+                os.rename(self.renamefolder + "\\" + startname, self.renamefolder + "\\" + self.finalnames[countindex])  # Rename operation
                 print("Success")
             except FileExistsError:
                 print("Error: file with that name already exists. (File not renamed)")
-                if not ignoreerrors:
+                if not self.ignoreerrors:
                     try:  # If this is the last file then don't ask the user if they want to continue
-                        finalnames[countindex + 1]
+                        self.finalnames[countindex + 1]
                         print("Do you want to continue renaming other files? ('y' to continue, anything else to not)")
-                        if input("> ").lower() == "y": ignoreerrors = True
+                        if input("> ").lower() == "y": self.ignoreerrors = True
                         else:
                             input("\nOperation Cancelled")
                             return
@@ -96,7 +94,8 @@ class Renamer():
         input("\nOperation Complete")
 
     def main(self): 
-        self.rename(self.genfilename())
+        if self.genfilename():
+            self.rename()
 
 if __name__ == "__main__":
     renameobject = Renamer()
