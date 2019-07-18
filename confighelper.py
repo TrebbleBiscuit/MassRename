@@ -108,6 +108,10 @@ def helper():
     print("If you're happy with the way the example file was renamed, then the line ")
     print("in config.ini file should read:\n")
     print("IndexList: " + ', '.join(map(str, indexlist)))
-    input("\nIf that's not what you want, then run this helper again.")
+    print("Is that what you want? ('y' for yes, anything else for no)\n")
+    if input("> ").lower() == "y":
+        input("\nGreat! Now you're ready to edit config.ini and then run rename.py")
+    else:
+        input("\nIf that's not what you want, then re-run this helper file to try again.")
 
 helper()

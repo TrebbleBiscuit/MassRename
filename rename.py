@@ -36,21 +36,24 @@ class Renamer():
         self.continueoperation = False
         self.startnames = []
         self.finalnames = []
+        self.directorynames = [self.renamefolder]
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    def genfilename(self):    ### Generate list of file names ###  
-        for startname in os.listdir(self.renamefolder):  # Iterates through files within the renamefolder directory
-            if os.path.isdir(self.renamefolder + "\\" + startname):
-                continue  # If it finds a directory instead of a file, skip it
+    def genfilename(self, renamefolder):    ### Generate list of file names ###  
+        for startname in os.listdir(renamefolder):  # Iterates through files within the renamefolder directory
+            if os.path.isdir(renamefolder + "\\" + startname):  # If it finds a directory instead of a file:
+                self.directorynames.append(renamefolder + "\\" + startname)  # Add that directory to a list
+                continue  # and then move on to the next item
             namelist = split(self.delimiters, startname)  # Splits filename by delimiters
             namelist += split("[.]", namelist.pop(-1))  # Splits file extension
-            fileext = namelist.pop(-1)  # Removes file extension from list
+            fileext = namelist.pop(-1)  # Removes file extension from list, store it seperately
             for x in self.indexlist:  # Moves through index, adding each section to the file name
                 try: finalname = finalname + self.newdelimiter + (namelist[x])  # Sections are separated by the new delimiter
                 except NameError: finalname = namelist[x]  # When it's the first part of the filename, don't precede it with a delimiter
                 except IndexError as err:
                     print("\nError: " + str(err))
-                    print("You probably put number in indexlist that is higher than the number of sections in the file name.")
+                    print("You probably put a number in IndexList that is higher than the number of sections in the file name.")
+                    print("Run the helper file for help creating an appropriate IndexList.")
                     input("\nOperation Cancelled")
                     return False
             finalname = finalname + "." + fileext  # Replace file extension at end 
@@ -64,38 +67,40 @@ class Renamer():
                 else:
                     input("\nOperation Cancelled")
                     return False
-            self.startnames.append(startname)  # Add the original name to a list of original names
-            self.finalnames.append(finalname)  # Add the generated final name to a list of final names
+            self.startnames.append(renamefolder + "\\" + startname)  # Add the original name to a list of original names
+            self.finalnames.append(renamefolder + "\\" + finalname)  # Add the generated final name to a list of final names
             del finalname  # delete finalname variable before moving to new file so that the earlier NameError will trigger
         return True
 
-    def rename(self):    ### Execute rename operation ### 
-        if self.finalnames == []: input("No files found in 'ToRename' directory.")
-        assert self.finalnames  # DEBUG: Asserts that self.finalnames evaluates as True, which it always should.
-        countindex = 0
-        for startname in os.listdir(self.renamefolder):
-            if os.path.isdir(self.renamefolder + "\\" + startname): continue  # If it finds a directory, skip it
-            print("Renaming " + startname + " to " + self.finalnames[countindex] + " - ", end='')
+    def rename(self, renamefolder):    ### Execute rename operation ### 
+        if self.finalnames == []:  # This and genfilename could probably be in the same function but it was easier to organize this way.
+            input("Error: No files found in " + renamefolder + " directory.")
+            return
+        assert len(self.startnames) == len(self.finalnames)  # DEBUG: Makes sure that these two lists are of equal length
+        for x in range(len(self.startnames)):
+            print('Renaming "' + self.startnames[x] + '" to "' + self.finalnames[x] + '" - "', end='')
             try:
-                os.rename(self.renamefolder + "\\" + startname, self.renamefolder + "\\" + self.finalnames[countindex])  # Rename operation
+                os.rename(self.startnames[x], self.finalnames[x])  # Rename operation
                 print("Success")
             except FileExistsError:
                 print("Error: file with that name already exists. (File not renamed)")
                 if not self.ignoreerrors:
                     try:  # If this is the last file then don't ask the user if they want to continue
-                        self.finalnames[countindex + 1]
+                        self.finalnames[x + 1]  # TODO: This could just be done with a simple len() check
                         print("Do you want to continue renaming other files? ('y' to continue, anything else to not)")
                         if input("> ").lower() == "y": self.ignoreerrors = True
                         else:
                             input("\nOperation Cancelled")
                             return
                     except IndexError: pass
-            countindex += 1
-        input("\nOperation Complete")
 
     def main(self): 
-        if self.genfilename():
-            self.rename()
+        for dirname in self.directorynames:
+            if self.genfilename(dirname):
+                self.rename(dirname)
+                self.startnames = []
+                self.finalnames = []
+        input("\nOperation Complete")
 
 if __name__ == "__main__":
     renameobject = Renamer()
